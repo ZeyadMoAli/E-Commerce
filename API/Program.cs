@@ -1,11 +1,18 @@
+using System.Text;
 using API.Errors;
 using API.Helpers;
 using API.Middleware;
+using Core.Entities.Identity;
 using Core.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Identity;
+using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +25,10 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddControllers();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddIdentity<AppUser,IdentityRole>().AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
+builder.Services.AddDbContext<AppIdentityDbContext>(x=>x.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection")));
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -54,6 +64,19 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<StoreContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option => 
+    option.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Token:Key"])),
+        ValidIssuer = builder.Configuration["Token:Issuer"],
+        ValidateIssuerSigningKey = true,
+        ValidateAudience = false,
+        
+    }
+);
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -67,6 +90,9 @@ app.UseCors("AllowAll");
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseStaticFiles();
 app.UseStatusCodePagesWithReExecute("/error/{0}");
