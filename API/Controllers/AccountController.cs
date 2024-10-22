@@ -47,6 +47,10 @@ public class AccountController:BaseApiController
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
+        if (EmailExists(registerDto.Email).Result.Value)
+        {
+            return BadRequest("Email already exists");
+        }
         var user = new AppUser
         {
             DisplayName = registerDto.DisplayName,
@@ -78,7 +82,6 @@ public class AccountController:BaseApiController
             DisplayName = user.UserName,
         };
     }
-
     [HttpGet("emailExists")]
     public async Task<ActionResult<bool>> EmailExists(string email)
     {

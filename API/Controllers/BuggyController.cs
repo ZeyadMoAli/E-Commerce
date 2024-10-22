@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
+[Route("api/[controller]")]
 
-public class BuggyController: BaseApiController 
+public class BuggyController : BaseApiController
 {
     private readonly StoreContext _context;
 
@@ -18,28 +19,30 @@ public class BuggyController: BaseApiController
     [Authorize]
     public ActionResult<string> TestAuth()
     {
-        return "Hello World!";
+        return "You are authorized";
     }
-     
+
     [HttpGet("NotFound")]
-    public ActionResult GetNotFoundRequest()
+    public ActionResult HandleNotFoundRequest()
     {
         return NotFound(new ApiResponse(404));
     }
+
     [HttpGet("ServerError")]
-    public ActionResult GetServerErrorRequest()
+    public ActionResult HandleServerError()
     {
-        return Ok();
+        throw new Exception("This is a server error");
     }
+
     [HttpGet("BadRequest")]
-    public ActionResult GetBadRequestRequest()
+    public ActionResult HandleBadRequest()
     {
         return BadRequest(new ApiResponse(400));
     }
+
     [HttpGet("BadRequest/{id}")]
-    public ActionResult GetNotFoundRequest(int id)
+    public ActionResult HandleBadRequest(int id)
     {
         return Ok();
     }
-    
 }
