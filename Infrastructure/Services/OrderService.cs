@@ -9,11 +9,12 @@ public class OrderService: IOrderService
 {
     private readonly IBasketRepository _basketRepository;
     private readonly IUnitOfWork _unitOfWork;
-
-    public OrderService(IBasketRepository basketRepository, IUnitOfWork unitOfWork)
+    private readonly IPaymentService _paymentService;
+    public OrderService(IBasketRepository basketRepository, IUnitOfWork unitOfWork, IPaymentService paymentService)
     {
         _basketRepository = basketRepository;
         _unitOfWork = unitOfWork;
+        _paymentService = paymentService;
     }
 
     public async Task<Order> CreateOrderAsync(string buyerEmail, int deliveryMethodId, string baskedId, Address shippingAddress)
@@ -30,13 +31,21 @@ public class OrderService: IOrderService
         
         var deliveryMethod = await _unitOfWork.Repository<DeliveryMethod>().GetByIdAsync(deliveryMethodId);
         var subtotal = items.Sum(x => x.Price * x.Quantity);
-        var order = new Order( buyerEmail, shippingAddress, deliveryMethod, items , subtotal);
+        var spec = new OrderByPaymentIntentIdSpecification(basket.PaymentIntentId);
+        var existingOrder = await _unitOfWork.Repository<Order>().GetEntityWithSpec(spec);
+
+        if (existingOrder != null)
+        {
+            _unitOfWork.Repository<Order>().Delete(existingOrder);
+            await _paymentService.CreateOrUpdatePaymentIntent(basket.PaymentIntentId);
+        }
+        
+        var order = new Order( buyerEmail, shippingAddress, deliveryMethod, items , subtotal,basket.PaymentIntentId);
         _unitOfWork.Repository<Order>().Add(order);
         var result = await _unitOfWork.Complete();
         if(result < 0)
             return null;
 
-        await _basketRepository.DeleteBasketAsync(baskedId);
         return order;
         
     }
