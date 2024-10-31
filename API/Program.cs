@@ -50,6 +50,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddIdentity<AppUser,IdentityRole>().AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
+builder.Services.AddSingleton<IResponseCacheService, ResponseCacheService>();
 builder.Services.AddDbContext<AppIdentityDbContext>(x=>x.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection")));
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
