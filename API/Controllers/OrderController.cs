@@ -3,11 +3,12 @@ using API.Extensions;
 using AutoMapper;
 using Core.Interfaces;
 using Core.OrderAggregate;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
-[Authorize]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class OrderController:BaseApiController
 {
     private readonly IOrderService _orderService;

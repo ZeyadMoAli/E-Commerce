@@ -4,6 +4,7 @@ using API.Extensions;
 using AutoMapper;
 using Core.Entities.Identity;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -69,7 +70,7 @@ public class AccountController:BaseApiController
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
         
@@ -95,7 +96,7 @@ public class AccountController:BaseApiController
         return _mapper.Map<Address,AddressDto>(user.Address);
     }
 
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpPut("address")]
     public async Task<ActionResult<AddressDto>> UpdateAddress(AddressDto addressDto)
     {

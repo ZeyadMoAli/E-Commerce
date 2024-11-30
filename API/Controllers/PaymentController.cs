@@ -1,6 +1,7 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
 using Core.OrderAggregate;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
@@ -21,7 +22,7 @@ public class PaymentController : BaseApiController
         _logger = logger;
     }
 
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpPost("{basketId}")]
     public async Task<ActionResult<CustomerBasket>> CreateOrUpdatePaymentIntent(string basketId)
     {

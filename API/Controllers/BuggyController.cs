@@ -1,5 +1,6 @@
 ﻿using API.Errors;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ public class BuggyController : BaseApiController
     }
 
     [HttpGet("testauth")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public ActionResult<string> TestAuth()
     {
         return "You are authorized";
